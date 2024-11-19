@@ -1,57 +1,3 @@
-apiVersion: v1
-kind: ServiceAccount
-metadata:
-  name: ovn-ovs
-  namespace: kube-system
----
-apiVersion: rbac.authorization.k8s.io/v1
-kind: ClusterRole
-metadata:
-  annotations:
-    rbac.authorization.k8s.io/system-only: "true"
-  name: system:ovn-ovs
-rules:
-  - apiGroups:
-      - ""
-    resources:
-      - pods
-    verbs:
-      - get
-      - patch
-  - apiGroups:
-      - ""
-    resources:
-      - services
-      - endpoints
-    verbs:
-      - get
-  - apiGroups:
-      - apps
-    resources:
-      - controllerrevisions
-    verbs:
-      - get
-      - list
----
-apiVersion: rbac.authorization.k8s.io/v1
-kind: ClusterRoleBinding
-metadata:
-  name: ovn-ovs
-roleRef:
-  name: system:ovn-ovs
-  kind: ClusterRole
-  apiGroup: rbac.authorization.k8s.io
-subjects:
-  - kind: ServiceAccount
-    name: ovn-ovs
-    namespace: kube-system
-
----
-apiVersion: v1
-kind: ServiceAccount
-metadata:
-  name: ovn
-  namespace: kube-system
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
@@ -208,26 +154,48 @@ rules:
     verbs:
       - get
       - list
+  - apiGroups:
+      - authentication.k8s.io
+    resources:
+      - tokenreviews
+    verbs:
+      - create
+  - apiGroups:
+      - authorization.k8s.io
+    resources:
+      - subjectaccessreviews
+    verbs:
+      - create
 ---
 apiVersion: rbac.authorization.k8s.io/v1
-kind: ClusterRoleBinding
+kind: ClusterRole
 metadata:
-  name: ovn
-roleRef:
-  name: system:ovn
-  kind: ClusterRole
-  apiGroup: rbac.authorization.k8s.io
-subjects:
-  - kind: ServiceAccount
-    name: ovn
-    namespace: kube-system
+  annotations:
+    rbac.authorization.k8s.io/system-only: "true"
+  name: system:ovn-ovs
+rules:
+  - apiGroups:
+      - ""
+    resources:
+      - pods
+    verbs:
+      - get
+      - patch
+  - apiGroups:
+      - ""
+    resources:
+      - services
+      - endpoints
+    verbs:
+      - get
+  - apiGroups:
+      - apps
+    resources:
+      - controllerrevisions
+    verbs:
+      - get
+      - list
 
----
-apiVersion: v1
-kind: ServiceAccount
-metadata:
-  name: kube-ovn-cni
-  namespace: kube-system
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
@@ -240,8 +208,8 @@ rules:
       - "kubeovn.io"
     resources:
       - subnets
-      - provider-networks
       - vlans
+      - provider-networks
     verbs:
       - get
       - list
@@ -254,6 +222,7 @@ rules:
       - ovn-eips/status
       - nodes
       - pods
+      - vlans
     verbs:
       - get
       - list
@@ -282,26 +251,18 @@ rules:
       - get
       - list
       - watch
----
-apiVersion: rbac.authorization.k8s.io/v1
-kind: ClusterRoleBinding
-metadata:
-  name: kube-ovn-cni
-roleRef:
-  name: system:kube-ovn-cni
-  kind: ClusterRole
-  apiGroup: rbac.authorization.k8s.io
-subjects:
-  - kind: ServiceAccount
-    name: kube-ovn-cni
-    namespace: kube-system
-
----
-apiVersion: v1
-kind: ServiceAccount
-metadata:
-  name: kube-ovn-app
-  namespace: kube-system
+  - apiGroups:
+      - authentication.k8s.io
+    resources:
+      - tokenreviews
+    verbs:
+      - create
+  - apiGroups:
+      - authorization.k8s.io
+    resources:
+      - subjectaccessreviews
+    verbs:
+      - create
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
@@ -324,16 +285,15 @@ rules:
       - daemonsets
     verbs:
       - get
----
-apiVersion: rbac.authorization.k8s.io/v1
-kind: ClusterRoleBinding
-metadata:
-  name: kube-ovn-app
-roleRef:
-  name: system:kube-ovn-app
-  kind: ClusterRole
-  apiGroup: rbac.authorization.k8s.io
-subjects:
-  - kind: ServiceAccount
-    name: kube-ovn-app
-    namespace: kube-system
+  - apiGroups:
+      - authentication.k8s.io
+    resources:
+      - tokenreviews
+    verbs:
+      - create
+  - apiGroups:
+      - authorization.k8s.io
+    resources:
+      - subjectaccessreviews
+    verbs:
+      - create
