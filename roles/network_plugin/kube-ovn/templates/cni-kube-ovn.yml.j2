@@ -25,8 +25,20 @@ spec:
         type: infra
     spec:
       tolerations:
-      - operator: Exists
+        - effect: NoSchedule
+          operator: Exists
+        - key: CriticalAddonsOnly
+          operator: Exists
       affinity:
+        nodeAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - preference:
+              matchExpressions:
+              - key: "ovn.kubernetes.io/ic-gw"
+                operator: NotIn
+                values:
+                - "true"
+            weight: 100
         podAntiAffinity:
           requiredDuringSchedulingIgnoredDuringExecution:
             - labelSelector:
@@ -97,14 +109,14 @@ spec:
                   fieldPath: spec.nodeName
             - name: OVN_DB_IPS
               value: "{{ kube_ovn_central_ips }}"
-            - name: POD_IPS
-              valueFrom:
-                fieldRef:
-                  fieldPath: status.podIPs
             - name: POD_IP
               valueFrom:
                 fieldRef:
                   fieldPath: status.podIP
+            - name: POD_IPS
+              valueFrom:
+                fieldRef:
+                  fieldPath: status.podIPs
             - name: ENABLE_BIND_LOCAL_IP
               value: "{{ kube_ovn_bind_local_ip_enabled }}"
           volumeMounts:
@@ -112,6 +124,8 @@ spec:
               name: localtime
             - mountPath: /var/log/kube-ovn
               name: kube-ovn-log
+            - mountPath: /var/log/ovn
+              name: ovn-log
             - mountPath: /var/run/tls
               name: kube-ovn-tls
           readinessProbe:
@@ -148,6 +162,9 @@ spec:
         - name: kube-ovn-log
           hostPath:
             path: /var/log/kube-ovn
+        - name: ovn-log
+          hostPath:
+            path: /var/log/ovn
         - name: kube-ovn-tls
           secret:
             optional: true
@@ -228,7 +245,13 @@ spec:
           - --secure-serving={{ kube_ovn_enable_secure_serving }}
         securityContext:
           runAsUser: 0
-          privileged: true
+          privileged: false
+          capabilities:
+            add:
+              - NET_ADMIN
+              - NET_BIND_SERVICE
+              - NET_RAW
+              - SYS_ADMIN
         env:
           - name: ENABLE_SSL
             value: "{{ kube_ovn_enable_ssl | lower }}"
@@ -265,14 +288,14 @@ spec:
             mountPath: /lib/modules
             readOnly: true
           - name: shared-dir
-            mountPath: /var/lib/kubelet/pods
+            mountPath: $KUBELET_DIR/pods
           - mountPath: /etc/openvswitch
             name: systemid
           - mountPath: /etc/cni/net.d
             name: cni-conf
           - mountPath: /run/openvswitch
             name: host-run-ovs
-            mountPropagation: Bidirectional
+            mountPropagation: HostToContainer
           - mountPath: /run/ovn
             name: host-run-ovn
           - mountPath: /host/var/run/dbus
@@ -291,7 +314,7 @@ spec:
             name: localtime
           - mountPath: /tmp
             name: tmp
-        readinessProbe:
+        livenessProbe:
           failureThreshold: 3
           periodSeconds: 7
           successThreshold: 1
@@ -301,7 +324,7 @@ spec:
               - --port=10665
               - --tls={{ kube_ovn_enable_secure_serving | lower}}
           timeoutSeconds: 5
-        livenessProbe:
+        readinessProbe:
           failureThreshold: 3
           initialDelaySeconds: 30
           periodSeconds: 7
@@ -539,6 +562,12 @@ spec:
           image: {{ kube_ovn_container_image_repo }}:{{ kube_ovn_container_image_tag }}
           imagePullPolicy: {{ k8s_image_pull_policy }}
           command: ["/kube-ovn/start-ovn-monitor.sh"]
+          args:
+          - --secure-serving=false
+          - --log_file=/var/log/kube-ovn/kube-ovn-monitor.log
+          - --logtostderr=false
+          - --alsologtostderr=true
+          - --log_file_max_size=200
           securityContext:
             runAsUser: 0
             privileged: false
@@ -549,14 +578,14 @@ spec:
               valueFrom:
                 fieldRef:
                   fieldPath: spec.nodeName
-            - name: POD_IPS
-              valueFrom:
-                fieldRef:
-                  fieldPath: status.podIPs
             - name: POD_IP
               valueFrom:
                 fieldRef:
                   fieldPath: status.podIP
+            - name: POD_IPS
+              valueFrom:
+                fieldRef:
+                  fieldPath: status.podIPs
             - name: ENABLE_BIND_LOCAL_IP
               value: "{{ kube_ovn_bind_local_ip_enabled }}"
           resources:
@@ -629,9 +658,6 @@ spec:
         - name: host-log-ovn
           hostPath:
             path: /var/log/ovn
-        - name: kube-ovn-log
-          hostPath:
-            path: /var/log/kube-ovn
         - name: localtime
           hostPath:
             path: /etc/localtime
@@ -639,6 +665,9 @@ spec:
           secret:
             optional: true
             secretName: kube-ovn-tls
+        - name: kube-ovn-log
+          hostPath:
+            path: /var/log/kube-ovn
 ---
 kind: Service
 apiVersion: v1
@@ -709,7 +738,7 @@ spec:
   ports:
     - port: 10665
       name: metrics
-      {% if kube_ovn_ic_enable %}
+{% if kube_ovn_ic_enable %}
 ---
 kind: ConfigMap
 apiVersion: v1

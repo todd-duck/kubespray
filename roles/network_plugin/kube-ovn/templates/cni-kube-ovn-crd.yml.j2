@@ -1570,6 +1570,8 @@ spec:
                         type: string
                       bfdId:
                         type: string
+                      routeTable:
+                        type: string
                     type: object
                   type: array
                 policyRoutes:
@@ -1903,6 +1905,12 @@ spec:
         openAPIV3Schema:
           type: object
           properties:
+            metadata:
+              type: object
+              properties:
+                name:
+                  type: string
+                  pattern: ^[^0-9]
             status:
               type: object
               properties:
@@ -2100,6 +2108,8 @@ spec:
                   type: boolean
                 enableMulticastSnoop:
                   type: boolean
+                routeTable:
+                  type: string
   scope: Cluster
   names:
     plural: subnets

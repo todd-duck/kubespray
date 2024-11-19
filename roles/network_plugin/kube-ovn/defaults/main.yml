@@ -33,7 +33,7 @@ kube_ovn_central_replics: "{{ kube_ovn_central_hosts | length }}"
 kube_ovn_controller_replics: "{{ kube_ovn_central_hosts | length }}"
 kube_ovn_central_ips: |-
   {% for item in kube_ovn_central_hosts -%}
-    {{ hostvars[item]['ip'] | default(fallback_ips[item]) }}{% if not loop.last %},{% endif %}
+    {{ hostvars[item]['ip'] | default(hostvars[item]['fallback_ip']) }}{% if not loop.last %},{% endif %}
   {%- endfor %}
 
 kube_ovn_ic_enable: false
@@ -117,22 +117,22 @@ kube_ovn_bind_local_ip_enabled: true
 ## enable compact
 kube_ovn_enable_compact: false
 
-## OVN_NORTHD_N_THREADS
+## ovn northd n threads
 kube_ovn_northd_n_threads: 1
 
-## OVN_LEADER_PROBE_INTERVAL
+## ovn leader probe interval
 kube_ovn_leader_probe_interval: 5
 
-## PROBE_INTERVAL
+## ovn probe interval
 kube_ovn_probe_interval: 180000
 
-# OVN_NORTHD_PROBE_INTERVAL
+# ovn northd probe interval
 kube_ovn_northd_probe_interval: 5000
 
-# OVN_REMOTE_PROBE_INTERVAL
+# ovn remote probe interval
 kube_ovn_remote_probe_interval: 10000
 
-# OVN_REMOTE_OPENFLOW_INTERVAL
+# ovn remote openflow interval
 kube_ovn_remote_openflow_interval: 180
 
 ## eip snat need configmap "ovn-vpc-nat-config" set by user first
