@@ -166,7 +166,7 @@ kube_ovn_exchange_link_name: false
 kube_ovn_keep_vm_ip: true
 
 ## cni config priority, default: 01
-kube_ovn_cni_config_priority: 01
+kube_ovn_cni_config_priority: "01"
 
 # nodelocaldns_ip
 nodelocaldns_ip: 169.254.25.10
