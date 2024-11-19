@@ -1,4 +1,4 @@
----	---
+---
 kind: ConfigMap	
 apiVersion: v1	
 metadata:	
@@ -492,7 +492,6 @@ spec:
             - mountPath: /var/log/ovn
               name: host-log-ovn
             - mountPath: /var/log/kube-ovn
-              readOnly: true
               name: kube-ovn-log
             - mountPath: /etc/localtime
               name: localtime

@@ -1,4 +1,13 @@
 ---
+# image repo and tag
+kube_ovn_container_image_repo: "{{ docker_image_repo }}/kubeovn/kube-ovn"
+kube_ovn_container_image_tag: "{{ kube_ovn_version }}"
+kube_ovn_vpc_container_image_repo: "{{ docker_image_repo }}/kubeovn/vpc-nat-gateway"
+kube_ovn_vpc_container_image_tag: "{{ kube_ovn_version }}"
+kube_ovn_dpdk_container_image_repo: "{{ docker_image_repo }}/kubeovn/kube-ovn-dpdk"
+kube_ovn_dpdk_container_image_tag: "{{ kube_ovn_dpdk_version }}"
+
+# request and limit
 kube_ovn_db_cpu_request: 500m
 kube_ovn_db_memory_request: 200Mi
 kube_ovn_db_cpu_limit: 3000m
