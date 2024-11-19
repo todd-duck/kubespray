@@ -291,6 +291,7 @@ spec:
             mountPath: $KUBELET_DIR/pods
           - mountPath: /etc/openvswitch
             name: systemid
+            readOnly: true
           - mountPath: /etc/cni/net.d
             name: cni-conf
           - mountPath: /run/openvswitch
@@ -312,10 +313,12 @@ spec:
             name: host-log-ovn
           - mountPath: /etc/localtime
             name: localtime
+            readOnly: true
           - mountPath: /tmp
             name: tmp
         livenessProbe:
           failureThreshold: 3
+          initialDelaySeconds: 30
           periodSeconds: 7
           successThreshold: 1
           exec:
@@ -326,7 +329,6 @@ spec:
           timeoutSeconds: 5
         readinessProbe:
           failureThreshold: 3
-          initialDelaySeconds: 30
           periodSeconds: 7
           successThreshold: 1
           exec:
@@ -467,12 +469,15 @@ spec:
               name: host-config-openvswitch
             - mountPath: /var/log/openvswitch
               name: host-log-ovs
+              readOnly: true
             - mountPath: /var/log/ovn
               name: host-log-ovn
             - mountPath: /var/log/kube-ovn
+              readOnly: true
               name: kube-ovn-log
             - mountPath: /etc/localtime
               name: localtime
+              readOnly: true
             - mountPath: /var/run/tls
               name: kube-ovn-tls
           resources:
@@ -608,8 +613,10 @@ spec:
               name: host-log-ovs
             - mountPath: /var/log/ovn
               name: host-log-ovn
+              readOnly: true
             - mountPath: /etc/localtime
               name: localtime
+              readOnly: true
             - mountPath: /var/run/tls
               name: kube-ovn-tls
             - mountPath: /var/log/kube-ovn
